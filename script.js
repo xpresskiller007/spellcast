@@ -71,54 +71,9 @@ class MainScene extends Phaser.Scene {
 
             if (gameObject.length) {
 
-                for (let i in drops) {
-                    let element = drops[i];
-                    if (element.sprite == gameObject[0]) {
-                        scene_DropFrame.drop = element;
-                        if (!scene_DropFrame.dropisopen){
-                            scene_DropFrame.opendrop();
-                        }
-                        return
-                    }
-                }
-
-                for (let i in mobs) {
-                    let mobelement = mobs[i];
-                    if (mobelement.sprite == gameObject[0]) {
-                        player.target = mobelement;
-                        return
-                    }
-                }
-
-                for (let i in npcs) {
-                    let npcelement = npcs[i];
-                    if (npcelement.sprite == gameObject[0]) {
-                        if (player.target == npcelement){
-                            if (!scene_NpcDialoge.frameopen){
-                                scene_NpcDialoge.opendialoge()
-                            }
-                            console.log('он показывал пиструн');
-                        }
-                        else{
-                            player.target = npcelement;
-                        }
-                        return
-                    }
-                }
-
-                for (let i in players) {
-                    let playelement = players[i];
-                    if (playelement.sprite == gameObject[0]) {
-                        player.target = playelement;
-                        return
-                    }
-                }
 
             }
-            else {
-                player.target = null;
-            }
-
+            
         });
 
 
