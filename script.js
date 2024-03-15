@@ -65,102 +65,7 @@ class MainScene extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('dude', { start: 14, end: 14 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('dude', { start: 11, end: 11 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'turn',
-            frames: [{ key: 'dude', frame: 20 }],
-            frameRate: 20
-        });
-
-        this.anims.create({
-            key: 'up',
-            frames: this.anims.generateFrameNumbers('dude', { start: 8, end: 8 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'down',
-            frames: this.anims.generateFrameNumbers('dude', { start: 12, end: 12 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'upleft',
-            frames: this.anims.generateFrameNumbers('dude', { start: 15, end: 15 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'upright',
-            frames: this.anims.generateFrameNumbers('dude', { start: 9, end: 9 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'downleft',
-            frames: this.anims.generateFrameNumbers('dude', { start: 23, end: 23 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'downright',
-            frames: this.anims.generateFrameNumbers('dude', { start: 13, end: 13 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'f1turn',
-            frames: [{ key: 'Female1', frame: 15 }],
-            frameRate: 1
-        });
-
-        this.anims.create({
-            key: 'f2turn',
-            frames: [{ key: 'Female2', frame: 15 }],
-            frameRate: 1
-        });
-
-        this.anims.create({
-            key: 'm1turn',
-            frames: [{ key: 'Male1', frame: 15 }],
-            frameRate: 1
-        });
-
-        this.anims.create({
-            key: 'm2turn',
-            frames: [{ key: 'Male2', frame: 15 }],
-            frameRate: 1
-        });
-
-        this.anims.create({
-            key: 'm3turn',
-            frames: [{ key: 'Male3', frame: 15 }],
-            frameRate: 1
-        });
-
-
         cursors = this.input.keyboard.createCursorKeys();
-
-        bombs = this.physics.add.group();
 
         this.input.on('pointerdown', function (pointer, gameObject) {
 
@@ -215,8 +120,6 @@ class MainScene extends Phaser.Scene {
             }
 
         });
-
-        console.log('gbcz')
 
 
     }
