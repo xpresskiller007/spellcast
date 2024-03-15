@@ -216,12 +216,15 @@ class MainScene extends Phaser.Scene {
 
         });
 
+        console.log('gbcz')
+
 
     }
 
     update(p1, p2) {
 
     }
+
 
 }
 
