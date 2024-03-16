@@ -43,10 +43,18 @@ class CastFrame extends Phaser.Scene {
         });
 
         this.drawGraph = this.add.graphics();
-        this.zone = this.add.zone(windowInnerWidth / 2, windowInnerHeight / 2 , 200, 200).setInteractive();
+        this.zone = this.add.zone(windowInnerWidth / 2, windowInnerHeight / 2, 200, 200).setInteractive();
         this.zone.visible = false;
 
         this.zone.on('pointermove', pointer => {
+
+            if (this.drawPoint.length && Date.now() / 1000 - this.beginDraw > 3 && this.castopen) {
+                this.beginDraw = 0;
+                this.direction();
+                this.drawPoint.splice(0, this.drawPoint.length);
+                this.drawGraph.clear()
+                this.drawGraph.lineStyle(4, 0x0000ff);
+            }
 
             if (pointer.isDown) {
 
@@ -59,7 +67,7 @@ class CastFrame extends Phaser.Scene {
                     this.beginDraw = Date.now() / 1000;
                 }
 
-                this.drawPoint.push({'x': pointer.x, 'y': pointer.y})
+                this.drawPoint.push({ 'x': pointer.x, 'y': pointer.y })
 
                 this.drawGraph.beginPath();
                 this.drawGraph.moveTo(x, y);
@@ -67,23 +75,97 @@ class CastFrame extends Phaser.Scene {
                 this.drawGraph.stroke();
                 this.drawGraph.closePath();
             }
+            else{
+                if (this.drawPoint.length && this.castopen) {
+                    this.beginDraw = 0;
+                    this.direction();
+                    this.drawPoint.splice(0, this.drawPoint.length);
+                    this.drawGraph.clear()
+                    this.drawGraph.lineStyle(4, 0x0000ff);
+                }    
+            }
 
         });
 
     }
 
     update() {
-        if (this.drawPoint.length && Date.now() / 1000 - this.beginDraw > 3 && this.castopen) {
-            this.beginDraw = 0;
-            this.drawPoint.splice(0, this.drawPoint.length);
-            this.drawGraph.clear()
-            this.drawGraph.lineStyle(4, 0x0000ff);
+
+    }
+
+    direction() {
+        let x = 0;
+        let y = 0;
+        let i = 0;
+        let left = false;
+        let right = false;
+        let down = false;
+        let up = false;
+        let step = 10;
+        let lastdirection = '';
+        let direction = '';
+        let distanse = 0;
+        let maxind = this.drawPoint.length - 1;
+        while (i <= maxind) {
+
+            x = this.drawPoint[i].x;
+            y = this.drawPoint[i].y;
+
+            i += step;
+            if (i > maxind) {
+                i = maxind;
+            }
+
+            distanse = Math.sqrt((x - this.drawPoint[i].x) ** 2 + (y - this.drawPoint[i].y) ** 2);
+
+            if (distanse < 10) {
+                i += step;
+                continue;
+            }
+
+            left = (x > this.drawPoint[i].x + 10);
+            right = (x < this.drawPoint[i].x - 10);
+            down = (y < this.drawPoint[i].y - 10);
+            up = (y > this.drawPoint[i].y + 10);
+
+            if (left && up) {
+                direction = 'leftup';
+            }
+            else if (right && up) {
+                direction = 'rightup';
+            }
+            else if (left && down) {
+                direction = 'leftdown';
+            }
+            else if (right && down) {
+                direction = 'rightdown';
+            }
+            else if (left) {
+                direction = 'left';
+            }
+            else if (right) {
+                direction = 'right';
+            }
+            else if (up) {
+                direction = 'up';
+            }
+            else if (down) {
+                direction = 'down';
+            }
+
+
+
+            if (lastdirection != direction) {
+                lastdirection = direction;
+                console.log(lastdirection);
+            }
+
+            i += step;
         }
     }
 
     open() {
 
-        console.log(this.xx+'x'+this.yy);
         let xsize = windowInnerWidth / 2 - 100;
         let ysize = windowInnerHeight / 2 - 100;
         this.graphics.fillStyle(0x000000, 0.2);
