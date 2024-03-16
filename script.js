@@ -33,45 +33,66 @@ class CastFrame extends Phaser.Scene {
         scene_CastFrame = this;
 
         this.castopen = false;
+        this.beginDraw = 0
+        this.drawPoint = []
         this.graphics = this.add.graphics();
-        this.ClsdBtn = this.add.sprite(windowInnerWidth - 50, windowInnerHeight - 200, 'ClsdBtn').setInteractive();
+        this.ClsdBtn = this.add.sprite(windowInnerWidth - 50, windowInnerHeight - 100, 'ClsdBtn').setInteractive();
         this.ClsdBtn.visible = false;
         this.ClsdBtn.on('pointerdown', function (pointer, gameObject) {
             scene_CastFrame.close()
         });
 
-        this.zone = this.add.zone(windowInnerWidth / 2 - 200, windowInnerHeight / 2 - 200, 200, 200).setOrigin(0).setInteractive();
+        this.drawGraph = this.add.graphics();
+        this.zone = this.add.zone(windowInnerWidth / 2, windowInnerHeight / 2 , 200, 200).setInteractive();
         this.zone.visible = false;
 
         this.zone.on('pointermove', pointer => {
 
             if (pointer.isDown) {
+
                 let dx = pointer.position.x;
                 let dy = pointer.position.y;
                 let x = pointer.prevPosition.x;
                 let y = pointer.prevPosition.y;
 
-                scene_CastFrame.graphics.beginPath();
-                scene_CastFrame.graphics.moveTo(x, y);
-                scene_CastFrame.graphics.lineTo(dx, dy);
-                scene_CastFrame.graphics.stroke();
-                scene_CastFrame.graphics.closePath();
+                if (!this.drawPoint.length) {
+                    this.beginDraw = Date.now() / 1000;
+                }
+
+                this.drawPoint.push({'x': pointer.x, 'y': pointer.y})
+
+                this.drawGraph.beginPath();
+                this.drawGraph.moveTo(x, y);
+                this.drawGraph.lineTo(dx, dy);
+                this.drawGraph.stroke();
+                this.drawGraph.closePath();
             }
 
         });
 
     }
 
+    update() {
+        if (this.drawPoint.length && Date.now() / 1000 - this.beginDraw > 3 && this.castopen) {
+            this.beginDraw = 0;
+            this.drawPoint.splice(0, this.drawPoint.length);
+            this.drawGraph.clear()
+            this.drawGraph.lineStyle(4, 0x0000ff);
+        }
+    }
+
     open() {
 
-        let xsize = windowInnerWidth / 2 - 200;
-        let ysize = windowInnerHeight / 2 - 200;
-        this.graphics.fillStyle(0x0000ff, 0.5);
+        console.log(this.xx+'x'+this.yy);
+        let xsize = windowInnerWidth / 2 - 100;
+        let ysize = windowInnerHeight / 2 - 100;
+        this.graphics.fillStyle(0x000000, 0.2);
         this.graphics.fillRect(xsize, ysize, 200, 200);
-        this.graphics.setInteractive(new Phaser.Geom.Circle(windowInnerWidth / 2 - 100, windowInnerHeight / 2 - 100, 200), Phaser.Geom.Circle.Contains);
+        this.drawGraph.fillStyle(0x000000, 0);
+        this.drawGraph.fillRect(xsize, ysize, 200, 200);
+        this.drawGraph.lineStyle(4, 0x0000ff);
         this.ClsdBtn.visible = true;
         this.ClsdBtn.setPosition(xsize + 200 - 10, ysize - 10)
-        this.graphics.lineStyle(2, 0x000000);
         this.zone.visible = true;
         this.castopen = true;
     }
@@ -79,6 +100,7 @@ class CastFrame extends Phaser.Scene {
     close() {
         this.ClsdBtn.visible = false;
         this.graphics.clear();
+        this.drawGraph.clear();
         this.zone.visible = false;
         this.castopen = false
     }
