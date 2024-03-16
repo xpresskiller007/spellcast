@@ -26,6 +26,14 @@ var map;
 var scene_main;
 var scene_CastFrame;
 
+var spells = [];
+
+spells.push({'id': 1, 'sprite': 'spell1', 'spelldata': ['rightup','left','rightdown']})
+spells.push({'id': 2, 'sprite': 'spell2', 'spelldata': ['leftdown','right','leftup']})
+spells.push({'id': 3, 'sprite': 'spell3', 'spelldata': ['leftdown','right','leftdown']})
+spells.push({'id': 4, 'sprite': 'spell4', 'spelldata': ['leftdown','rightdown','rightup','leftup']})
+
+
 
 class CastFrame extends Phaser.Scene {
 
@@ -33,6 +41,7 @@ class CastFrame extends Phaser.Scene {
         scene_CastFrame = this;
 
         this.castopen = false;
+        this.spell = NaN;
         this.beginDraw = 0
         this.drawPoint = []
         this.graphics = this.add.graphics();
@@ -106,6 +115,7 @@ class CastFrame extends Phaser.Scene {
         let direction = '';
         let distanse = 0;
         let maxind = this.drawPoint.length - 1;
+        let dirarray = [];
         while (i <= maxind) {
 
             x = this.drawPoint[i].x;
@@ -157,15 +167,42 @@ class CastFrame extends Phaser.Scene {
 
             if (lastdirection != direction) {
                 lastdirection = direction;
+                dirarray.push(lastdirection);
                 console.log(lastdirection);
             }
 
             i += step;
         }
+
+        if (this.spell.spelldata.length != dirarray.length){
+            console.log('не шмогла');
+            this.close();
+        }
+        else{
+
+            for (let i in dirarray){
+                let result = dirarray[i];
+                let speldata = this.spell.spelldata[i];
+                if (result!=speldata){
+                    console.log('не шмогла');
+                    this.close();
+                    return;
+                }
+            }
+
+            console.log('ШМОГЛААААААА');
+            this.close();
+        }
+
     }
 
-    open() {
+    open(spell) {
 
+        if (spell == NaN){
+            return;
+        }
+
+        this.spell = spell;
         let xsize = windowInnerWidth / 2 - 100;
         let ysize = windowInnerHeight / 2 - 100;
         this.graphics.fillStyle(0x000000, 0.2);
@@ -180,6 +217,7 @@ class CastFrame extends Phaser.Scene {
     }
 
     close() {
+        this.spell = NaN;
         this.ClsdBtn.visible = false;
         this.graphics.clear();
         this.drawGraph.clear();
@@ -215,6 +253,10 @@ class MainScene extends Phaser.Scene {
         this.load.image('CopperCoin', 'assets/CopperCoin.png');
         this.load.image('GoldenCoin', 'assets/GoldenCoin.png');
         this.load.image('SilverCoin', 'assets/SilverCoin.png');
+        this.load.image('spell1', 'assets/spell1.png');
+        this.load.image('spell2', 'assets/spell2.png');
+        this.load.image('spell3', 'assets/spell3.png');
+        this.load.image('spell4', 'assets/spell4.png');
 
     }
 
@@ -228,17 +270,22 @@ class MainScene extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
-        this.castframe = this.add.sprite(windowInnerWidth - 100, windowInnerHeight - 100, 'bomb').setScale(3).setInteractive();
+        let step = 100 * spells.length;
+        for (let i in spells){
+            let element = spells[i];
+            element.sprite = this.add.sprite(windowInnerWidth - 100, windowInnerHeight - step, element.sprite).setInteractive();
+            step -= 100;
+        }
 
         scene_main.scene.add('CastFrame', CastFrame, true, { x: 400, y: 300 });
 
-        this.castframe.on('pointerdown', function (pointer, gameObject) {
+        // this.castframe.on('pointerdown', function (pointer, gameObject) {
 
-            if (!scene_CastFrame.castopen) {
-                scene_CastFrame.open();
-            }
+        //     if (!scene_CastFrame.castopen) {
+        //         scene_CastFrame.open();
+        //     }
 
-        });
+        // });
 
         cursors = this.input.keyboard.createCursorKeys();
 
@@ -246,6 +293,12 @@ class MainScene extends Phaser.Scene {
 
             if (gameObject.length) {
 
+                for (let i in spells){
+                    let element = spells[i];
+                    if (element.sprite == gameObject[0]){
+                        scene_CastFrame.open(element);
+                    }
+                }
 
             }
 
