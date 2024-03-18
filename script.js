@@ -28,10 +28,10 @@ var scene_CastFrame;
 
 var spells = [];
 
-spells.push({'id': 1, 'sprite': 'spell1', 'spelldata': ['rightup','left','rightdown']})
-spells.push({'id': 2, 'sprite': 'spell2', 'spelldata': ['leftdown','right','leftup']})
-spells.push({'id': 3, 'sprite': 'spell3', 'spelldata': ['leftdown','right','leftdown']})
-spells.push({'id': 4, 'sprite': 'spell4', 'spelldata': ['leftdown','rightdown','rightup','leftup']})
+spells.push({ 'id': 1, 'sprite': 'spell1', 'spelldata': [['rightup', 'left', 'rightdown'], ['up']] })
+spells.push({ 'id': 2, 'sprite': 'spell2', 'spelldata': [['leftdown', 'right', 'leftup'], ['up']] })
+spells.push({ 'id': 3, 'sprite': 'spell3', 'spelldata': [['leftdown', 'right', 'leftdown'], ['up']] })
+spells.push({ 'id': 4, 'sprite': 'spell4', 'spelldata': [['leftdown', 'rightdown', 'rightup', 'leftup'], ['up']] })
 
 
 
@@ -42,8 +42,13 @@ class CastFrame extends Phaser.Scene {
 
         this.castopen = false;
         this.spell = NaN;
-        this.beginDraw = 0
+        this.beginDraw = 0;
+        this.nowDraw = 0;
         this.drawPoint = []
+        this.text = this.add.text(10, 10, '...', { fontSize: '20px', fill: '#000' });
+
+        this.text2 = this.add.text(200, 10, '...', { fontSize: '20px', fill: '#000' });
+
         this.graphics = this.add.graphics();
         this.ClsdBtn = this.add.sprite(windowInnerWidth - 50, windowInnerHeight - 100, 'ClsdBtn').setInteractive();
         this.ClsdBtn.visible = false;
@@ -57,41 +62,41 @@ class CastFrame extends Phaser.Scene {
 
         this.zone.on('pointermove', pointer => {
 
-            if (this.drawPoint.length && Date.now() / 1000 - this.beginDraw > 3 && this.castopen) {
-                this.beginDraw = 0;
-                this.direction();
-                this.drawPoint.splice(0, this.drawPoint.length);
-                this.drawGraph.clear()
-                this.drawGraph.lineStyle(4, 0x0000ff);
-            }
-
             if (pointer.isDown) {
+
+                let pointerx = pointer.x;
+                let pointery = pointer.y;
+
+                if (!this.drawPoint.length) {
+                    this.beginDraw = Date.now() / 1000;
+                    this.drawPoint.push([])
+                }
+                else {
+                    let lastarray = this.drawPoint[this.drawPoint.length - 1]
+                    let strarray = lastarray[lastarray.length - 1]
+                    let px = pointerx - strarray.x;
+                    let py = pointery - strarray.y;
+                    if (px >= 50 || px <= -50 || py >= 50 || py <= -50) {
+                        this.drawPoint.push([])
+                    }
+                }
+
+                let array = this.drawPoint[this.drawPoint.length - 1];
+                array.push({ 'x': pointer.x, 'y': pointer.y })
 
                 let dx = pointer.position.x;
                 let dy = pointer.position.y;
                 let x = pointer.prevPosition.x;
                 let y = pointer.prevPosition.y;
 
-                if (!this.drawPoint.length) {
-                    this.beginDraw = Date.now() / 1000;
-                }
-
-                this.drawPoint.push({ 'x': pointer.x, 'y': pointer.y })
-
                 this.drawGraph.beginPath();
                 this.drawGraph.moveTo(x, y);
                 this.drawGraph.lineTo(dx, dy);
                 this.drawGraph.stroke();
                 this.drawGraph.closePath();
-            }
-            else{
-                if (this.drawPoint.length && this.castopen) {
-                    this.beginDraw = 0;
-                    this.direction();
-                    this.drawPoint.splice(0, this.drawPoint.length);
-                    this.drawGraph.clear()
-                    this.drawGraph.lineStyle(4, 0x0000ff);
-                }    
+
+                this.nowDraw = Date.now() / 1000;;
+
             }
 
         });
@@ -100,105 +105,172 @@ class CastFrame extends Phaser.Scene {
 
     update() {
 
+        let nowtime = Date.now() / 1000
+
+        if (this.drawPoint.length && (nowtime - this.beginDraw > 10 || nowtime - this.nowDraw > 3) && this.castopen) {
+            this.beginDraw = 0;
+            this.nowDraw = 0;
+            this.direction();
+            this.drawPoint.splice(0, this.drawPoint.length);
+            this.drawGraph.clear()
+            this.drawGraph.lineStyle(4, 0x0000ff);
+        }
+
     }
 
     direction() {
-        let x = 0;
-        let y = 0;
-        let i = 0;
-        let left = false;
-        let right = false;
-        let down = false;
-        let up = false;
-        let step = 10;
-        let lastdirection = '';
-        let direction = '';
-        let distanse = 0;
-        let maxind = this.drawPoint.length - 1;
-        let dirarray = [];
-        while (i <= maxind) {
+        let step = 3;
+        let array;
+        let arr = false;
+        for (let iar in this.drawPoint) {
 
-            x = this.drawPoint[i].x;
-            y = this.drawPoint[i].y;
+            let x = 0;
+            let y = 0;
+            let i = 0;
 
-            i += step;
-            if (i > maxind) {
-                i = maxind;
-            }
+            let lastdirection = '';
 
-            distanse = Math.sqrt((x - this.drawPoint[i].x) ** 2 + (y - this.drawPoint[i].y) ** 2);
+            array = this.drawPoint[iar];
 
-            if (distanse < 10) {
+            let maxind = array.length - 1;
+            let dirarray = [];
+            while (i <= maxind) {
+
+                let direction = '';
+
+                x = array[i].x;
+                y = array[i].y;
+
                 i += step;
-                continue;
-            }
-
-            left = (x > this.drawPoint[i].x + 10);
-            right = (x < this.drawPoint[i].x - 10);
-            down = (y < this.drawPoint[i].y - 10);
-            up = (y > this.drawPoint[i].y + 10);
-
-            if (left && up) {
-                direction = 'leftup';
-            }
-            else if (right && up) {
-                direction = 'rightup';
-            }
-            else if (left && down) {
-                direction = 'leftdown';
-            }
-            else if (right && down) {
-                direction = 'rightdown';
-            }
-            else if (left) {
-                direction = 'left';
-            }
-            else if (right) {
-                direction = 'right';
-            }
-            else if (up) {
-                direction = 'up';
-            }
-            else if (down) {
-                direction = 'down';
-            }
-
-
-
-            if (lastdirection != direction) {
-                lastdirection = direction;
-                dirarray.push(lastdirection);
-                console.log(lastdirection);
-            }
-
-            i += step;
-        }
-
-        if (this.spell.spelldata.length != dirarray.length){
-            console.log('не шмогла');
-            this.close();
-        }
-        else{
-
-            for (let i in dirarray){
-                let result = dirarray[i];
-                let speldata = this.spell.spelldata[i];
-                if (result!=speldata){
-                    console.log('не шмогла');
-                    this.close();
-                    return;
+                if (i > maxind) {
+                    i = maxind;
                 }
+                direction = this.calculateDirection(x, y, array[i].x, array[i].y);
+                while(direction == ''  && i <= maxind){
+                    i += step;
+                    direction = this.calculateDirection(x, y, array[i].x, array[i].y);
+                }
+
+                if (lastdirection != direction) {
+                    lastdirection = direction;
+                    dirarray.push({'direction': direction, 'counet': 1});
+                    console.log(direction);
+                }
+                else{
+                    dirarray[dirarray.length-1].counet += 1;
+                }
+
+                i += step;
             }
 
+            let text = []
+
+            for (let ii in dirarray){
+                let strdir = dirarray[ii]
+                text.push(strdir.direction + ' ' + strdir.counet);   
+            }
+
+            this.text.setText(text);
+
+            this.processArrayDirections(dirarray);
+
+            text = []
+
+            for (let ii in dirarray){
+                let strdir = dirarray[ii]
+                text.push(strdir.direction + ' ' + strdir.counet);   
+            }
+
+            this.text2.setText(text);
+
+            this.drawGraph.clear();
+            return;
+            if (this.spell.spelldata[iar].length != dirarray.length) {
+                arr = true;
+                break;
+            }
+            else {
+
+                for (let i in dirarray) {
+                    let result = dirarray[i];
+                    let speldata = this.spell.spelldata[iar][i];
+                    if (result != speldata) {
+                        arr = true;
+                        break;
+                    }
+                }
+
+            }
+
+        }
+
+        if (arr) {
+            console.log('не шмогла');
+        }
+        else {
             console.log('ШМОГЛААААААА');
             this.close();
         }
 
+
+    }
+
+    processArrayDirections(array){
+
+        let i = 0
+
+        while (i <= array.length-1){
+            let strarray = array[i];
+            if (strarray.countre <= 2){
+                strarray.splice(i, 1);
+                continue;
+            }
+
+            i += 1;
+        }
+
+    }
+
+    calculateDirection(x1, y1, x2, y2){
+        let dx = x2-x1;
+        let dy = y2-y1;
+        let angle = Math.atan2(dy,dx)*(180/Math.PI);
+
+        if (angle<0){
+            angle += 360;
+        }
+        let direction = '';
+        if (angle>=345 || angle<=15){
+            direction = 'right';    
+        }
+        else if (angle>=30 && angle<60){
+            direction = 'rightdown';    
+        }
+        else if (angle>=75 && angle<105){
+            direction = 'down';    
+        }
+        else if (angle>=120 && angle<150){
+            direction = 'leftdown';    
+        }
+        else if (angle>=165 && angle<195){
+            direction = 'left';    
+        }
+        else if (angle>=210 && angle<240){
+            direction = 'leftup';    
+        }
+        else if (angle>=255 && angle<285){
+            direction = 'up';    
+        }
+        else if (angle>=300 && angle<330){
+            direction = 'rightup';    
+        }
+
+        return direction;
     }
 
     open(spell) {
 
-        if (spell == NaN){
+        if (spell == NaN) {
             return;
         }
 
@@ -271,7 +343,7 @@ class MainScene extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
         let step = 100 * spells.length;
-        for (let i in spells){
+        for (let i in spells) {
             let element = spells[i];
             element.sprite = this.add.sprite(windowInnerWidth - 100, windowInnerHeight - step, element.sprite).setInteractive();
             step -= 100;
@@ -293,9 +365,9 @@ class MainScene extends Phaser.Scene {
 
             if (gameObject.length) {
 
-                for (let i in spells){
+                for (let i in spells) {
                     let element = spells[i];
-                    if (element.sprite == gameObject[0]){
+                    if (element.sprite == gameObject[0]) {
                         scene_CastFrame.open(element);
                     }
                 }
