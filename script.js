@@ -42,6 +42,7 @@ class CastFrame extends Phaser.Scene {
 
         this.castopen = false;
         this.spell = NaN;
+        this.spelldata = [];
         this.beginDraw = 0;
         this.nowDraw = 0;
         this.drawPoint = []
@@ -64,25 +65,11 @@ class CastFrame extends Phaser.Scene {
 
             if (pointer.isDown) {
 
-                let pointerx = pointer.x;
-                let pointery = pointer.y;
-
                 if (!this.drawPoint.length) {
                     this.beginDraw = Date.now() / 1000;
-                    this.drawPoint.push([])
-                }
-                else {
-                    let lastarray = this.drawPoint[this.drawPoint.length - 1]
-                    let strarray = lastarray[lastarray.length - 1]
-                    let px = pointerx - strarray.x;
-                    let py = pointery - strarray.y;
-                    if (px >= 50 || px <= -50 || py >= 50 || py <= -50) {
-                        this.drawPoint.push([])
-                    }
                 }
 
-                let array = this.drawPoint[this.drawPoint.length - 1];
-                array.push({ 'x': pointer.x, 'y': pointer.y })
+                this.drawPoint.push({ 'x': pointer.x, 'y': pointer.y })
 
                 let dx = pointer.position.x;
                 let dy = pointer.position.y;
@@ -95,9 +82,27 @@ class CastFrame extends Phaser.Scene {
                 this.drawGraph.stroke();
                 this.drawGraph.closePath();
 
-                this.nowDraw = Date.now() / 1000;;
+                // this.nowDraw = Date.now();
 
             }
+            else if (this.drawPoint.length){
+                scene_CastFrame.direction();
+                scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
+            }
+
+        });
+
+        this.zone.on('pointerup', function (pointer) {
+
+            scene_CastFrame.direction();
+            scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
+
+        });
+
+        this.zone.on('pointerout', function (pointer) {
+
+            scene_CastFrame.direction();
+            scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
 
         });
 
@@ -105,99 +110,83 @@ class CastFrame extends Phaser.Scene {
 
     update() {
 
-        let nowtime = Date.now() / 1000
+        // let nowtime = Date.now() / 1000
 
-        if (this.drawPoint.length && (nowtime - this.beginDraw > 10 || nowtime - this.nowDraw > 3) && this.castopen) {
-            this.beginDraw = 0;
-            this.nowDraw = 0;
-            this.direction();
-            this.drawPoint.splice(0, this.drawPoint.length);
-            this.drawGraph.clear()
-            this.drawGraph.lineStyle(4, 0x0000ff);
-        }
+        // if (this.drawPoint.length && nowtime - this.beginDraw > 3 && this.castopen) {
+        //     this.beginDraw = 0;
+        //     this.nowDraw = 0;
+        //     this.direction();
+        //     this.drawPoint.splice(0, this.drawPoint.length);
+        //     this.drawGraph.clear()
+        //     this.drawGraph.lineStyle(4, 0x0000ff);
+        // }
 
     }
 
     direction() {
+        this.beginDraw = 0;
+        this.nowDraw = 0;
         let step = 2;
-        let array;
-        let arr = false;
-        for (let iar in this.drawPoint) {
 
-            let x = 0;
-            let y = 0;
-            let i = 0;
+        let x = 0;
+        let y = 0;
+        let i = 0;
 
-            let lastdirection = '';
+        let lastdirection = '';
 
-            array = this.drawPoint[iar];
+        let maxind = this.drawPoint.length - 1;
+        let dirarray = [];
+        while (i <= maxind) {
 
-            let maxind = array.length - 1;
-            let dirarray = [];
-            while (i <= maxind) {
+            let direction = '';
 
-                let direction = '';
+            x = this.drawPoint[i].x;
+            y = this.drawPoint[i].y;
 
-                x = array[i].x;
-                y = array[i].y;
-
+            i += step;
+            if (i > maxind) {
+                i = maxind;
+            }
+            direction = this.calculateDirection(x, y, this.drawPoint[i].x, this.drawPoint[i].y);
+            while (direction == '' && i <= maxind) {
                 i += step;
                 if (i > maxind) {
-                    i = maxind;
+                    break;
                 }
-                direction = this.calculateDirection(x, y, array[i].x, array[i].y);
-                while(direction == ''  && i <= maxind){
-                    i += step;
-                    if (i > maxind){
-                        break;
-                    }
-                    direction = this.calculateDirection(x, y, array[i].x, array[i].y);
-                }
-
-                if (lastdirection != direction) {
-                    lastdirection = direction;
-                    dirarray.push({'direction': direction, 'counter': 1});
-                    console.log(direction);
-                }
-                else{
-                    dirarray[dirarray.length-1].counter += 1;
-                }
-
-                i += step;
+                direction = this.calculateDirection(x, y, this.drawPoint[i].x, this.drawPoint[i].y);
             }
 
-            let text = []
-
-            for (let ii in dirarray){
-                let strdir = dirarray[ii]
-                text.push(strdir.direction + ' ' + strdir.counter);   
+            if (lastdirection != direction) {
+                lastdirection = direction;
+                dirarray.push({ 'direction': direction, 'counter': 1 });
+                console.log(direction);
+            }
+            else {
+                dirarray[dirarray.length - 1].counter += 1;
             }
 
-            this.text.setText(text);
+            i += step;
+        }
 
-            this.processArrayDirections(dirarray);
+        this.processArrayDirections(dirarray);
 
-            text = []
+        let arr = false;
 
-            for (let ii in dirarray){
-                let strdir = dirarray[ii]
-                text.push(strdir.direction + ' ' + strdir.counter);   
+        for (let ii in this.spelldata) {
+
+            if (this.spelldata[ii].Done) {
+                continue;
             }
 
-            this.text2.setText(text);
-
-            this.drawGraph.clear();
-            return;
-            if (this.spell.spelldata[iar].length != dirarray.length) {
+            if (this.spelldata[ii].data.length != dirarray.length) {
                 arr = true;
-                break;
             }
             else {
 
                 for (let i in dirarray) {
                     let result = dirarray[i];
-                    let speldata = this.spell.spelldata[iar][i];
-                    if (result != speldata) {
+                    let spelldata = this.spelldata[ii].data[i];
+                    if (result != spelldata) {
                         arr = true;
                         break;
                     }
@@ -205,39 +194,54 @@ class CastFrame extends Phaser.Scene {
 
             }
 
-        }
+            if (arr) {
+                console.log('не шмогла');
+                this.drawGraph.clear();
+                return;
+            }
+            else {
+                this.spelldata[ii].Done = true;
+                if (ii == 0) {
+                    this.text.setText('Done')
+                }
+                else {
+                    this.text2.setText('Done')
+                }
+                if (this.spelldata[this.spelldata.length - 1].Done) {
+                    this.close();
+                    return;
+                }
+                else {
+                    this.drawGraph.clear();
+                    return;
+                }
+            }
 
-        if (arr) {
-            console.log('не шмогла');
-        }
-        else {
-            console.log('ШМОГЛААААААА');
-            this.close();
         }
 
 
     }
 
-    processArrayDirections(array){
+    processArrayDirections(array) {
 
         let i = 0;
-        while (i <= array.length-1){
+        while (i <= array.length - 1) {
             let strarray = array[i];
-            if (strarray.counter <= 2){
+            if (strarray.counter <= 2) {
                 array.splice(i, 1);
                 continue;
             }
 
-            strarray = strarray.direction;
+            array[i] = strarray.direction;
 
             i += 1;
         }
 
         i = 0;
-        while (i <= array.length-1){
-            if (i+1 <= array.length-1){
-                if (array[i] == array[i+1]){
-                    array.splice(i+1, 1);    
+        while (i <= array.length - 1) {
+            if (i + 1 <= array.length - 1) {
+                if (array[i] == array[i + 1]) {
+                    array.splice(i + 1, 1);
                 }
             }
             i += 1;
@@ -245,38 +249,38 @@ class CastFrame extends Phaser.Scene {
 
     }
 
-    calculateDirection(x1, y1, x2, y2){
-        let dx = x2-x1;
-        let dy = y2-y1;
-        let angle = Math.atan2(dy,dx)*(180/Math.PI);
+    calculateDirection(x1, y1, x2, y2) {
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-        if (angle<0){
+        if (angle < 0) {
             angle += 360;
         }
         let direction = '';
-        if (angle>=345 || angle<=15){
-            direction = 'right';    
+        if (angle >= 345 || angle <= 15) {
+            direction = 'right';
         }
-        else if (angle>=30 && angle<60){
-            direction = 'rightdown';    
+        else if (angle >= 30 && angle < 60) {
+            direction = 'rightdown';
         }
-        else if (angle>=75 && angle<105){
-            direction = 'down';    
+        else if (angle >= 75 && angle < 105) {
+            direction = 'down';
         }
-        else if (angle>=120 && angle<150){
-            direction = 'leftdown';    
+        else if (angle >= 120 && angle < 150) {
+            direction = 'leftdown';
         }
-        else if (angle>=165 && angle<195){
-            direction = 'left';    
+        else if (angle >= 165 && angle < 195) {
+            direction = 'left';
         }
-        else if (angle>=210 && angle<240){
-            direction = 'leftup';    
+        else if (angle >= 210 && angle < 240) {
+            direction = 'leftup';
         }
-        else if (angle>=255 && angle<285){
-            direction = 'up';    
+        else if (angle >= 255 && angle < 285) {
+            direction = 'up';
         }
-        else if (angle>=300 && angle<330){
-            direction = 'rightup';    
+        else if (angle >= 300 && angle < 330) {
+            direction = 'rightup';
         }
 
         return direction;
@@ -289,6 +293,9 @@ class CastFrame extends Phaser.Scene {
         }
 
         this.spell = spell;
+        for (let i in this.spell.spelldata) {
+            this.spelldata.push({ 'data': this.spell.spelldata[i], 'Done': false })
+        }
         let xsize = windowInnerWidth / 2 - 100;
         let ysize = windowInnerHeight / 2 - 100;
         this.graphics.fillStyle(0x000000, 0.2);
@@ -300,6 +307,8 @@ class CastFrame extends Phaser.Scene {
         this.ClsdBtn.setPosition(xsize + 200 - 10, ysize - 10)
         this.zone.visible = true;
         this.castopen = true;
+        this.text.setText('...');
+        this.text2.setText('...');
     }
 
     close() {
@@ -308,6 +317,7 @@ class CastFrame extends Phaser.Scene {
         this.graphics.clear();
         this.drawGraph.clear();
         this.zone.visible = false;
+        this.spelldata = [];
         this.castopen = false
     }
 }
