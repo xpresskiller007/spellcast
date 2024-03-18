@@ -119,7 +119,7 @@ class CastFrame extends Phaser.Scene {
     }
 
     direction() {
-        let step = 3;
+        let step = 2;
         let array;
         let arr = false;
         for (let iar in this.drawPoint) {
@@ -148,16 +148,19 @@ class CastFrame extends Phaser.Scene {
                 direction = this.calculateDirection(x, y, array[i].x, array[i].y);
                 while(direction == ''  && i <= maxind){
                     i += step;
+                    if (i > maxind){
+                        break;
+                    }
                     direction = this.calculateDirection(x, y, array[i].x, array[i].y);
                 }
 
                 if (lastdirection != direction) {
                     lastdirection = direction;
-                    dirarray.push({'direction': direction, 'counet': 1});
+                    dirarray.push({'direction': direction, 'counter': 1});
                     console.log(direction);
                 }
                 else{
-                    dirarray[dirarray.length-1].counet += 1;
+                    dirarray[dirarray.length-1].counter += 1;
                 }
 
                 i += step;
@@ -167,7 +170,7 @@ class CastFrame extends Phaser.Scene {
 
             for (let ii in dirarray){
                 let strdir = dirarray[ii]
-                text.push(strdir.direction + ' ' + strdir.counet);   
+                text.push(strdir.direction + ' ' + strdir.counter);   
             }
 
             this.text.setText(text);
@@ -178,7 +181,7 @@ class CastFrame extends Phaser.Scene {
 
             for (let ii in dirarray){
                 let strdir = dirarray[ii]
-                text.push(strdir.direction + ' ' + strdir.counet);   
+                text.push(strdir.direction + ' ' + strdir.counter);   
             }
 
             this.text2.setText(text);
@@ -217,15 +220,26 @@ class CastFrame extends Phaser.Scene {
 
     processArrayDirections(array){
 
-        let i = 0
-
+        let i = 0;
         while (i <= array.length-1){
             let strarray = array[i];
-            if (strarray.countre <= 2){
-                strarray.splice(i, 1);
+            if (strarray.counter <= 2){
+                array.splice(i, 1);
                 continue;
             }
 
+            strarray = strarray.direction;
+
+            i += 1;
+        }
+
+        i = 0;
+        while (i <= array.length-1){
+            if (i+1 <= array.length-1){
+                if (array[i] == array[i+1]){
+                    array.splice(i+1, 1);    
+                }
+            }
             i += 1;
         }
 
