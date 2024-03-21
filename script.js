@@ -92,19 +92,20 @@ class CastFrame extends Phaser.Scene {
 
         });
 
-        this.zone.on('pointerup', function (pointer) {
+        // для мобилки
+        // this.zone.on('pointerup', function (pointer) {
 
-            scene_CastFrame.direction();
-            scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
+        //     scene_CastFrame.direction();
+        //     scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
 
-        });
+        // });
 
-        this.zone.on('pointerout', function (pointer) {
+        // this.zone.on('pointerout', function (pointer) {
 
-            scene_CastFrame.direction();
-            scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
+        //     scene_CastFrame.direction();
+        //     scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
 
-        });
+        // });
 
     }
 
@@ -197,6 +198,7 @@ class CastFrame extends Phaser.Scene {
             if (arr) {
                 console.log('не шмогла');
                 this.drawGraph.clear();
+                this.drawGraph.lineStyle(5, 0x0000ff);
                 return;
             }
             else {
@@ -213,6 +215,7 @@ class CastFrame extends Phaser.Scene {
                 }
                 else {
                     this.drawGraph.clear();
+                    this.drawGraph.lineStyle(5, 0x0000ff);
                     return;
                 }
             }
@@ -302,7 +305,7 @@ class CastFrame extends Phaser.Scene {
         this.graphics.fillRect(xsize, ysize, 200, 200);
         this.drawGraph.fillStyle(0x000000, 0);
         this.drawGraph.fillRect(xsize, ysize, 200, 200);
-        this.drawGraph.lineStyle(4, 0x0000ff);
+        this.drawGraph.lineStyle(5, 0x0000ff);
         this.ClsdBtn.visible = true;
         this.ClsdBtn.setPosition(xsize + 200 - 10, ysize - 10)
         this.zone.visible = true;
