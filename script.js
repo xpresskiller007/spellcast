@@ -1,5 +1,5 @@
-const windowInnerWidth = window.innerWidth - 20
-const windowInnerHeight = window.innerHeight - 20
+const windowInnerWidth = window.innerWidth
+const windowInnerHeight = window.innerHeight
 
 
 var client_id = Date.now()
@@ -85,27 +85,23 @@ class CastFrame extends Phaser.Scene {
                 // this.nowDraw = Date.now();
 
             }
-            else if (this.drawPoint.length){
-                scene_CastFrame.direction();
-                scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
-            }
 
         });
 
-        // для мобилки
-        // this.zone.on('pointerup', function (pointer) {
+        this.zone.on('pointerup', function (pointer) {
 
-        //     scene_CastFrame.direction();
-        //     scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
+            scene_CastFrame.direction();
+            scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
 
-        // });
+        });
 
-        // this.zone.on('pointerout', function (pointer) {
+        this.zone.on('pointerout', function (pointer) {
 
-        //     scene_CastFrame.direction();
-        //     scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
+            scene_CastFrame.direction();
+            scene_CastFrame.drawPoint.splice(0, scene_CastFrame.drawPoint.length);
 
-        // });
+        });
+
 
     }
 
@@ -329,6 +325,8 @@ class MainScene extends Phaser.Scene {
 
     preload() {
 
+        game.onResize()
+
         this.load.image('bomb', 'assets/bomb.png');
         this.load.spritesheet('dude', 'assets/chars.png', { frameWidth: 16, frameHeight: 24 });
         this.load.image('btn', 'assets/star.png');
@@ -413,18 +411,73 @@ class MainScene extends Phaser.Scene {
 
 }
 
-var config = {
+var app = {
+    width: 0,
+    height: 0
+}
+
+
+let config = {
     type: Phaser.AUTO,
-    width: windowInnerWidth,
-    height: windowInnerHeight,
+    width: windowInnerWidth,       // Стартовая ширина канваса  
+    height: windowInnerHeight,     // Стартовая высота канваса
+    virtualWidth: windowInnerWidth,             // Ширина проекта
+    virtualHeight: windowInnerHeight,             // Высота проекта   
+    orientation: 'landscape',       // Ориентация проекта: landscape или portrait
+    backgroundColor: 0xff0000,      // Чистый цвет
+    banner: false,                  // Cкрыть банер из консоли
+    antialias: true,                // Сглаживание
+    // disableContextMenu: true,       // Отключить меню по правому клику
+    autoMobilePipeline: true,       // Оптимизация для мобильных устрйств
+    resolution: 1,
+    pixelArt: true,
+    autoRound: true, 
     physics: {
         default: 'arcade',
         arcade: {
             debug: true
         }
     },
-    fps: 30,
-    scene: MainScene
-};
+    fps: 30,               // Размеры холста в целых числах
+    scene: MainScene                  // Сцена
+}
 
 var game = new Phaser.Game(config);
+
+game.onResize = function (){
+
+    let size;
+
+    this.scale.resize(window.innerWidth, window.innerHeight);
+	this.scale.refresh();
+   
+    if (config.orientation == "landscape") {
+        size = config.virtualWidth
+
+    }else if (config.orientation == "portrait"){
+        size = config.virtualHeight
+    }
+
+	if (window.innerWidth > window.innerHeight){
+        this.renderer.projectionWidth = size * window.innerWidth/window.innerHeight;
+		this.renderer.projectionHeight = size;
+    }else{
+        this.renderer.projectionWidth = size;
+		this.renderer.projectionHeight = size * window.innerHeight/window.innerWidth;
+    }
+    
+    // Актуальные внутренние размеры игры
+    app.width = this.renderer.projectionWidth
+	app.height = this.renderer.projectionHeight
+    
+    // Проходимся по всем объектам сцены
+    this.scene.scenes.forEach(function(scene) {
+        scene.children.list.forEach(function(child) {
+            if (typeof child.onResize === 'function') {
+                child.onResize();
+            }
+        });
+    });
+
+}
+window.addEventListener("resize", game.onResize.bind(game), false)
