@@ -302,6 +302,8 @@ class CastFrame extends Phaser.Scene {
                 return;
             }
             else {
+                this.spelldata[ii].Done = true;
+
                 this.drawResult(ii);
 
                 if (this.spelldata[this.spelldata.length - 1].Done) {
