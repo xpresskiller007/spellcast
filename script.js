@@ -86,11 +86,6 @@ class CastFrame extends Phaser.Scene {
         this.beginDraw = 0;
         this.nowDraw = 0;
         this.drawPoint = []
-        this.text = this.add.text(10, 10, '...', { fontSize: '20px', fill: '#000' });
-
-        this.text2 = this.add.text(200, 10, '...', { fontSize: '20px', fill: '#000' });
-
-        this.text3 = this.add.text(10, 100, '...', { fontSize: '20px', fill: '#000' });
 
         this.resultDraw = this.add.graphics();
         this.graphics = this.add.graphics();
@@ -307,14 +302,6 @@ class CastFrame extends Phaser.Scene {
                 return;
             }
             else {
-                this.spelldata[ii].Done = true;
-                if (ii == 0) {
-                    this.text.setText('Done')
-                }
-                else {
-                    this.text2.setText('Done')
-                }
-
                 this.drawResult(ii);
 
                 if (this.spelldata[this.spelldata.length - 1].Done) {
@@ -457,8 +444,6 @@ class CastFrame extends Phaser.Scene {
         this.ClsdBtn.setPosition(xsize + 300 - 10, ysize - 10)
         this.zone.visible = true;
         this.castopen = true;
-        this.text.setText('...');
-        this.text2.setText('...');
 
         for (let i in spells) {
             spells[i].sprite.visible = false;
