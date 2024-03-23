@@ -171,7 +171,7 @@ class CastFrame extends Phaser.Scene {
                 let exemp = this.exemple[ii];
 
                 for (let i in exemp.direction) {
-                    while (exemp.direction[i].stepcounter <= exemp.direction[i].steps - 1 && Date.now() - this.exemplestep > 10) {
+                    while (exemp.direction[i].stepcounter <= exemp.direction[i].steps - 1 && Date.now() - this.exemplestep > 15) {
 
                         let x1 = 0;
                         let y1 = 0;
