@@ -28,6 +28,15 @@ var scene_CastFrame;
 
 var spells = [];
 
+
+// var exemple = { x: windowInnerWidth - 155, y: windowInnerHeight - 40, stepx: 0, stepy: -10, steps: 20, stepcounter: 0 }
+let ii = []
+var exemple = [{ startx: - 155, starty: - 40, x:0, y:0, 
+    direction:[{stepx: 0, stepy: -10, steps: 20, stepcounter: 0},
+        {stepx: 5, stepy: 0, steps: 10, stepcounter: 0}]}]
+
+
+
 spells.push({ 'id': 1, 'sprite': 'spell1', 'spelldata': [['rightup', 'left', 'rightdown'], ['up']] })
 spells.push({ 'id': 2, 'sprite': 'spell2', 'spelldata': [['leftdown', 'right', 'leftup'], ['up']] })
 spells.push({ 'id': 3, 'sprite': 'spell3', 'spelldata': [['leftdown', 'right', 'leftdown'], ['up']] })
@@ -50,6 +59,8 @@ class CastFrame extends Phaser.Scene {
 
         this.text2 = this.add.text(200, 10, '...', { fontSize: '20px', fill: '#000' });
 
+        this.text3 = this.add.text(10, 100, '...', { fontSize: '20px', fill: '#000' });
+
         this.graphics = this.add.graphics();
         this.ClsdBtn = this.add.sprite(windowInnerWidth - 50, windowInnerHeight - 100, 'ClsdBtn').setInteractive();
         this.ClsdBtn.visible = false;
@@ -57,8 +68,10 @@ class CastFrame extends Phaser.Scene {
             scene_CastFrame.close()
         });
 
+        this.exemplestep = 0;
+        this.exempleGraph = this.add.graphics();
         this.drawGraph = this.add.graphics();
-        this.zone = this.add.zone(windowInnerWidth / 2, windowInnerHeight / 2, 200, 200).setInteractive();
+        this.zone = this.add.zone(windowInnerWidth - 155, windowInnerHeight - 155, 300, 300).setInteractive();
         this.zone.visible = false;
 
         this.zone.on('pointermove', pointer => {
@@ -105,7 +118,93 @@ class CastFrame extends Phaser.Scene {
 
     }
 
-    update() {
+    update(p1, p2) {
+
+
+        if (this.castopen) {
+            this.exemplestep += 1;
+            this.text3.setText(p2);
+            if (this.exemplestep > 3) {
+                let exemp;
+                let ii = 0;
+                for (ii in this.spelldata) {
+                    if (!this.spelldata[ii].Done) {
+                        break;
+                    }
+                }
+
+                exemp = exemple[ii];
+
+                let i = 0;
+                for (i in exemp.direction){
+                    if (exemp.direction[i].stepcounter <= exemp.direction[i].steps - 1){
+                        break;
+                    }
+                }
+                if (exemp.direction[i].stepcounter <= exemp.direction[i].steps - 1) {
+
+                    let x1 = 0;
+                    let y1 = 0;
+                    if (exemp.direction[i].stepcounter == 0 && i == 0){
+                        x1 = exemp.startx + windowInnerWidth;
+                        y1 = exemp.starty + windowInnerHeight;
+                    }
+                    else{
+                        x1 = exemp.x;
+                        y1 = exemp.y;
+                    }
+
+                    let x2 = x1 + exemp.direction[i].stepx;
+                    let y2 = y1 + exemp.direction[i].stepy;
+
+                    exemp.x = x2;
+                    exemp.y = y2;
+
+                    this.exempleGraph.beginPath();
+                    this.exempleGraph.moveTo(x1, y1);
+                    this.exempleGraph.lineTo(x2, y2);
+                    this.exempleGraph.stroke();
+                    this.exempleGraph.closePath();
+                    exemp.direction[i].stepcounter += 1;
+                    this.exemplestep = 0;
+
+                }
+            }
+            else{
+                let fulldraw = true;
+                for (let ii in this.spelldata){
+
+                    // if (!this.spelldata[ii].Done) {
+                    //     fulldraw = false;
+                    //     break;
+                    // }    
+
+                    for (let i in exemple[ii].direction){
+                        if (exemple[ii].direction[i].stepcounter <= exemple[ii].direction[i].steps - 1){
+                            fulldraw = false;
+                            break;
+                        }
+                    }
+
+                    if (!fulldraw){
+                        break;    
+                    }
+                    
+                }
+                if (fulldraw){
+                    for (let i in exemple.direction){
+                        exemple.direction[i].stepcounter = 0;
+                    }
+                    this.exemplestep = 0;
+                    this.exempleGraph.clear();
+                    this.exempleGraph.fillStyle(0x000000, 0);
+                    this.exempleGraph.lineStyle(7, 0x0000ff);
+                }
+                    
+            }
+
+        }
+
 
         // let nowtime = Date.now() / 1000
 
@@ -295,29 +394,39 @@ class CastFrame extends Phaser.Scene {
         for (let i in this.spell.spelldata) {
             this.spelldata.push({ 'data': this.spell.spelldata[i], 'Done': false })
         }
-        let xsize = windowInnerWidth / 2 - 100;
-        let ysize = windowInnerHeight / 2 - 100;
+        let xsize = windowInnerWidth - 310;
+        let ysize = windowInnerHeight - 310;
         this.graphics.fillStyle(0x000000, 0.2);
-        this.graphics.fillRect(xsize, ysize, 200, 200);
-        this.drawGraph.fillStyle(0x000000, 0);
-        this.drawGraph.fillRect(xsize, ysize, 200, 200);
+        this.graphics.fillRect(xsize, ysize, 300, 300);
+        this.exempleGraph.lineStyle(7, 0x0000ff);
         this.drawGraph.lineStyle(5, 0x0000ff);
         this.ClsdBtn.visible = true;
-        this.ClsdBtn.setPosition(xsize + 200 - 10, ysize - 10)
+        this.ClsdBtn.setPosition(xsize + 300 - 10, ysize - 10)
         this.zone.visible = true;
         this.castopen = true;
         this.text.setText('...');
         this.text2.setText('...');
+
+        for (let i in spells) {
+            spells[i].sprite.visible = false;
+        }
+
+
     }
 
     close() {
         this.spell = NaN;
         this.ClsdBtn.visible = false;
         this.graphics.clear();
+        this.exempleGraph.clear()
         this.drawGraph.clear();
         this.zone.visible = false;
         this.spelldata = [];
         this.castopen = false
+        for (let i in spells) {
+            spells[i].sprite.visible = true;
+        }
+        this.exemplestep = 0;
     }
 }
 
@@ -367,11 +476,11 @@ class MainScene extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
-        let step = 100 * spells.length;
+        let step = 50 * spells.length;
         for (let i in spells) {
             let element = spells[i];
-            element.sprite = this.add.sprite(windowInnerWidth - 100, windowInnerHeight - step, element.sprite).setInteractive();
-            step -= 100;
+            element.sprite = this.add.sprite(windowInnerWidth - 40, windowInnerHeight - step, element.sprite).setInteractive();
+            step -= 50;
         }
 
         scene_main.scene.add('CastFrame', CastFrame, true, { x: 400, y: 300 });
@@ -431,53 +540,52 @@ let config = {
     autoMobilePipeline: true,       // Оптимизация для мобильных устрйств
     resolution: 1,
     pixelArt: true,
-    autoRound: true, 
+    autoRound: true,
     physics: {
         default: 'arcade',
         arcade: {
             debug: true
         }
-    },
-    fps: 30,               // Размеры холста в целых числах
+    },              // Размеры холста в целых числах
     scene: MainScene                  // Сцена
 }
 
 var game = new Phaser.Game(config);
 
-game.onResize = function (){
+game.onResize = function () {
 
-    let size;
+    // let size;
 
-    this.scale.resize(window.innerWidth, window.innerHeight);
-	this.scale.refresh();
-   
-    if (config.orientation == "landscape") {
-        size = config.virtualWidth
+    // this.scale.resize(window.innerWidth, window.innerHeight);
+    // this.scale.refresh();
 
-    }else if (config.orientation == "portrait"){
-        size = config.virtualHeight
-    }
+    // if (config.orientation == "landscape") {
+    //     size = config.virtualWidth
 
-	if (window.innerWidth > window.innerHeight){
-        this.renderer.projectionWidth = size * window.innerWidth/window.innerHeight;
-		this.renderer.projectionHeight = size;
-    }else{
-        this.renderer.projectionWidth = size;
-		this.renderer.projectionHeight = size * window.innerHeight/window.innerWidth;
-    }
-    
-    // Актуальные внутренние размеры игры
-    app.width = this.renderer.projectionWidth
-	app.height = this.renderer.projectionHeight
-    
-    // Проходимся по всем объектам сцены
-    this.scene.scenes.forEach(function(scene) {
-        scene.children.list.forEach(function(child) {
-            if (typeof child.onResize === 'function') {
-                child.onResize();
-            }
-        });
-    });
+    // }else if (config.orientation == "portrait"){
+    //     size = config.virtualHeight
+    // }
+
+    // if (window.innerWidth > window.innerHeight){
+    //     this.renderer.projectionWidth = size * window.innerWidth/window.innerHeight;
+    // 	this.renderer.projectionHeight = size;
+    // }else{
+    //     this.renderer.projectionWidth = size;
+    // 	this.renderer.projectionHeight = size * window.innerHeight/window.innerWidth;
+    // }
+
+    // // Актуальные внутренние размеры игры
+    // app.width = this.renderer.projectionWidth
+    // app.height = this.renderer.projectionHeight
+
+    // // Проходимся по всем объектам сцены
+    // this.scene.scenes.forEach(function(scene) {
+    //     scene.children.list.forEach(function(child) {
+    //         if (typeof child.onResize === 'function') {
+    //             child.onResize();
+    //         }
+    //     });
+    // });
 
 }
 window.addEventListener("resize", game.onResize.bind(game), false)
